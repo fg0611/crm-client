@@ -1,0 +1,8 @@
+/* @import "tailwindcss";
+@import "tailwindcss/preflight"; */
+
+/* Añade estos estilos para un fondo oscuro consistente */
+body {
+  background-color: #0d1117; /* Un color oscuro */
+  color: #c9d1d9; /* Un color de texto claro */
+}

@@ -1,8 +1,12 @@
 export interface IUser {
     id: string,
-    email: string,
+    username: string,
     password: string,
+}
 
+export interface IUserForm {
+  password: string;
+  username: string;
 }
 
 export interface ILead {

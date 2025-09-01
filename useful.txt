@@ -4,3 +4,30 @@ del package-lock.json
 npm install
 
 npm run tailwind:init
+
+
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        // Colores principales y de acento
+        primaryViolet: '#7C3AED', // Color principal para elementos destacados y botones principales
+        secondaryMagenta: '#DB2777', // Resaltados y botones de acción secundaria
+        dangerRed: '#EF4444', // Botones de logout, eliminar y acciones destructivas
+        
+        // Fondo y fondos alternativos
+        darkBackground: '#1F2937', // Fondo principal del dashboard y paneles oscuros
+        lighterBackground: '#374151', // Alternativa de fondo para secciones o componentes diferenciados
+        
+        // Colores para texto e información
+        lightText: '#F9FAFB', // Texto principal, títulos y textos informativos
+        textSecondary: '#D1D5DB', // Textos secundarios o de soporte
+        
+        // Colores adicionales
+        warning: '#FBBF24', // Para alertas y advertencias
+        success: '#22C55E' // Mensajes de éxito
+      }
+    }
+  }
+}

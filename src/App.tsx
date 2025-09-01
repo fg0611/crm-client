@@ -1,11 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth.ts'; // Importa desde el hook
 import { type ReactNode } from 'react';
-
-// Se importan las páginas que vamos a crear
-// import LoginPage from './pages/LoginPage.tsx';
-// import RegisterPage from './pages/RegisterPage.tsx';
-// import DashboardPage from './pages/DashboardPage.tsx';
+import LoginPage from './pages/LoginPage.tsx';
+import RegisterPage from './pages/RegisterPage.tsx';
+import DashboardPage from './pages/DashboardPage.tsx';
 
 // Define la interfaz para los props de la ruta protegida
 interface ProtectedRouteProps {
@@ -23,18 +21,15 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 function App() {
   return (
     <Routes>
-      {/* Aún no creamos las páginas, por lo que las comentamos.
-        
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-      */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      
       <Route path="/" element={
         <ProtectedRoute>
-          {/* <DashboardPage /> */}
-          <p className='text-amber-500 text-2xl'>Ruta protegida</p>
+          <DashboardPage />
         </ProtectedRoute>
       } />
-      <Route path="*" element={<p>404 - Página no encontrada</p>} />
+      <Route path="*" element={<p style={{ color: 'var(--color-danger-red)' }}>404 - Página no encontrada</p>} />
     </Routes>
   );
 }

@@ -15,5 +15,5 @@ export interface ILead {
     is_active: boolean,
     status: string,
     created_at: string,
-    collected_data: null | object
+    collected_data: null | Record<string, string>
 }

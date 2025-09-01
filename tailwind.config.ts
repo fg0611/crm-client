@@ -1,26 +1,9 @@
-// import type { Config } from "tailwindcss";
+import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
 
-export default {
+const config: Config = {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  // theme: {
-  //   extend: {
-  //     colors: {
-  //       // Colores principales y de acento
-  //       primaryViolet: '#7C3AED',
-  //       secondaryMagenta: '#DB2777',
-  //       dangerRed: '#EF4444',
-  //       // Fondo y fondos alternativos
-  //       darkBackground: '#161B22',
-  //       lighterBackground: '#1F2937',
-  //       // Colores para texto e información
-  //       lightText: '#F9FAFB',
-  //       textSecondary: '#D1D5DB',
-  //       // Colores adicionales
-  //       warning: '#FBBF24',
-  //       success: '#22C55E'
-  //     },
-  //   },
-  // },
-  plugins: [],
+  plugins: [animate]
 };
-//  satisfies Config;
+
+export default config;

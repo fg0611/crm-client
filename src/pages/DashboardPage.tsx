@@ -14,7 +14,7 @@ import { tableColumnNames } from '../others/labels';
 import { Eye, Edit, Copy } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import EditLeadModal from '../components/EditLeadModal';
-import { leadCopyContent, formatLeadDataForUI } from '../others/helpers';
+import { leadCopyContent, formatLeadDataForUI, envVars } from '../others/helpers';
 
 
 const DashboardPage = () => {
@@ -53,7 +53,7 @@ const DashboardPage = () => {
                 status: appliedFilters.status || undefined,
             };
 
-            const response = await axios.get('http://127.0.0.1:8000/leads', {
+            const response = await axios.get(envVars.apiUrl + '/leads', {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -113,7 +113,7 @@ const DashboardPage = () => {
         if (!editingLead) return;
 
         try {
-            const response = await axios.put(`http://127.0.0.1:8000/leads/${editingLead.id}`, { name, is_active, status }, {
+            const response = await axios.put(`${envVars.apiUrl}/leads/${editingLead.id}`, { name, is_active, status }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

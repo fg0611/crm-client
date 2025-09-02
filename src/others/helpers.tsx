@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import type { ILead } from "../interfaces/commonInterfaces";
 
+export const envVars = {
+    apiUrl : import.meta.env.VITE_API_URL
+}
+
 // Objeto para traducir las keys de collected_data a español
 const keyTranslations: Record<string, string> = {
     'identification': '🪪 DNI/CUIT/CUIL',

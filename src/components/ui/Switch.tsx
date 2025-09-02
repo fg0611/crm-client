@@ -1,15 +1,18 @@
-import { type FC } from 'react';
-import { Controller, type FieldValues, type Control } from 'react-hook-form';
+// src/components/ui/Switch.tsx
+import { Controller, type FieldValues, type Control, type Path } from 'react-hook-form';
 import { Switch as HBSwitch } from '@headlessui/react';
-import { cn } from '../../lib/utils';
+import { cn } from '../../lib/utils'; // Asumiendo que tienes esta utilidad
 
-interface SwitchProps {
+// Interfaz genérica para las props del componente Switch
+// TFormValues se extiende de FieldValues para asegurar la compatibilidad con react-hook-form
+interface SwitchProps<TFormValues extends FieldValues> {
     id: string;
-    control: Control<FieldValues>;
-    stateKey: string;
+    control: Control<TFormValues>;
+    stateKey: Path<TFormValues>;
 }
 
-const Switch: FC<SwitchProps> = ({ id, control, stateKey }) => {
+// El componente se declara con el tipo genérico
+const Switch = <TFormValues extends FieldValues>({ id, control, stateKey }: SwitchProps<TFormValues>) => {
     return (
         <Controller
             name={stateKey}

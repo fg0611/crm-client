@@ -20,7 +20,6 @@ const UserForm = ({ formTitle, buttonText, onSubmit }: UserFormProps) => {
                     <div>
                         <input
                             id='username'
-                            name='username' // Recommended for better HTML semantics
                             type='text' // Use 'text' for username field
                             autoComplete='username' // Use 'username' for username autofill
                             required
@@ -38,7 +37,6 @@ const UserForm = ({ formTitle, buttonText, onSubmit }: UserFormProps) => {
                     <div>
                         <input
                             id='password'
-                            name='password' // Recommended for better HTML semantics
                             type='password'
                             autoComplete='current-password'
                             required

@@ -44,7 +44,7 @@ const EditLeadModal = ({ lead, onSave, onCancel }: EditLeadModalProps) => {
                     <XCircle size={24} />
                 </button>
                 <h2 className='text-2xl font-bold mb-4'>Editar Lead</h2>
-                
+
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                     <div>
                         <p className='text-sm text-gray-400 mb-1'>ID del Lead:</p>

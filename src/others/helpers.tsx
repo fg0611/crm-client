@@ -41,14 +41,19 @@ export const leadCopyContent = (lead: ILead): string => {
     result += `🗓️ Fecha de creación: ${createdAt}\n\n`;
 
     // 4. Procesar y traducir la data recopilada
-    result += ` *📑 Datos Recopilados*\n`;
-    for (const key in lead.collected_data) {
-        if (Object.prototype.hasOwnProperty.call(lead.collected_data, key)) {
-            const translatedKey = keyTranslations[key] || key;
-            const value = (lead.collected_data as Record<string, unknown>)[key];
-            result += `${translatedKey}: ${value}\n`;
+    if (lead.collected_data != null && JSON.stringify(lead.collected_data)?.length > 4) {
+        result += ` *📑 Datos Recopilados*\n`;
+        for (const key in lead.collected_data) {
+            if (Object.prototype.hasOwnProperty.call(lead.collected_data, key)) {
+                const translatedKey = keyTranslations[key] || key;
+                const value = (lead.collected_data as Record<string, unknown>)[key];
+                result += `${translatedKey}: ${value}\n`;
+            }
         }
+    } else {
+        result += ` *📑 NO hay Datos Recopilados*`;
     }
+
 
     return result;
 };

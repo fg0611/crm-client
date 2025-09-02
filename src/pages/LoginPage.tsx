@@ -12,6 +12,7 @@ const handleLogin = async (data: IUserForm) => {
   try {
     // Formatear los datos para el formato x-www-form-urlencoded
       const formData = new URLSearchParams();
+      console.log(data)
       formData.append('username', data.username);
       formData.append('password', data.password);
     // Llama a tu endpoint de login

@@ -141,10 +141,65 @@ const DashboardPage = () => {
 
     return (
         <div className='container mx-auto p-4' style={{ color: 'var(--color-light-text)' }}>
-            <h1 className='text-3xl font-bold mb-6 text-center' style={{ color: 'var(--color-light-text)' }}>Dashboard de Leads</h1>
+            <h1 className='text-xl font-bold mb-3 text-center' style={{ color: 'var(--color-light-text)' }}>Dashboard de Leads</h1>
+            <form onSubmit={handleSubmit(handleSearch)} className='mb-4 flex items-center gap-4'>
+                <div className='flex flex-wrap'>
+                    <div className="flex flex-wrap gap-4 place-content-center">
+                        <Input
+                            hasLabel={false}
+                            label="ID del Lead"
+                            id="id"
+                            type="text"
+                            placeholder="Buscar por Tlf"
+                            register={register}
+                            errors={null}
+                            stateKey="id"
+                        />
+                        <Input
+                            hasLabel={false}
+                            label="Nombre"
+                            id="name"
+                            type="text"
+                            placeholder="Buscar por nombre"
+                            register={register}
+                            errors={null}
+                            stateKey="name"
+                        />
+                        <Select
+                            hasLabel={false}
+                            label="Estado Activo"
+                            id="is_active"
+                            options={activeOptions}
+                            register={register}
+                            stateKey="is_active"
+                        />
+                        <Select
+                            hasLabel={false}
+                            label="Estado del Lead"
+                            id="status"
+                            options={statusOptions}
+                            register={register}
+                            stateKey="status"
+                        />
+                    </div>
+                </div>
 
+                {/* Contenedor de los botones, ahora fuera del flex-grow para que siempre tengan su propio espacio */}
+                <div className='flex flex-wrap gap-2 place-items-center'>
+                    <Button type='submit' className="flex items-center">
+                        <Search size={12} />
+                    </Button>
+                    <Button type='button' onClick={handleClear} className="flex items-center">
+                        <XCircle size={12} />
+                    </Button>
+                    <Button type='button' onClick={handleRefresh} className="flex items-center">
+                        <RefreshCcw size={12} />
+                    </Button>
+                </div>
+
+            </form>
             {/* Formulario de filtrado */}
-            <form onSubmit={handleSubmit(handleSearch)} className='mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+            {/* <form onSubmit={handleSubmit(handleSearch)} className='mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
                 <Input
                     hasLabel={false}
                     label="ID del Lead"
@@ -183,16 +238,16 @@ const DashboardPage = () => {
                 />
                 <div className='flex gap-2 lg:col-span-4 justify-end'>
                     <Button type='submit' className="flex items-center gap-2">
-                        <Search size={18} /> Buscar
+                        <Search size={18} />
                     </Button>
                     <Button type='button' onClick={handleClear} className="flex items-center gap-2">
-                        <XCircle size={18} /> Limpiar
+                        <XCircle size={18} />
                     </Button>
                     <Button type='button' onClick={handleRefresh} className="flex items-center gap-2">
-                        <RefreshCcw size={18} /> Actualizar
+                        <RefreshCcw size={18} />
                     </Button>
                 </div>
-            </form>
+            </form> */}
 
             {/* Tabla de Leads */}
             <div className='overflow-x-auto rounded-lg shadow-lg' style={{ backgroundColor: 'var(--color-lighter-background)' }}>
@@ -255,7 +310,6 @@ const DashboardPage = () => {
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <button
-                                                                disabled={!lead.collected_data || JSON.stringify(lead.collected_data).length < 5}
                                                                 onClick={() => navigator.clipboard.writeText(leadCopyContent(lead))}
                                                                 className={`${(!lead.collected_data || JSON.stringify(lead.collected_data).length < 5) ? 'text-grey-400' : 'text-green-500 cursor-pointer'} transition-colors`}
                                                             >

@@ -3,6 +3,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { type IUser } from '../interfaces/commonInterfaces';
 import { AuthContext } from './authContextObject'; // <-- Import the context object
+import { jwtDecode, type JwtPayload } from 'jwt-decode'
 
 // Define la interfaz para el estado y las funciones del contexto
 export interface AuthContextType {
@@ -10,6 +11,7 @@ export interface AuthContextType {
     token: string | null;
     login: (newToken: string, userData: IUser) => void;
     logout: () => void;
+    isTokenExpired: () => boolean;
     isAuthenticated: boolean;
 }
 
@@ -43,11 +45,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         localStorage.removeItem('token');
     };
 
+    const isTokenExpired = () => {
+        try {
+            if (!token)
+                return false
+            const decoded: JwtPayload = jwtDecode(token)
+            // console.log(decoded)
+            const currentTime = Date.now() / 1000 // in seconds
+            if (decoded?.exp && currentTime > decoded.exp) // existe y T de ahora supera a T de exp token
+            {
+                logout()
+                return true
+            }
+            return false
+        } catch (e) {
+            console.log(e)
+            return false
+        }
+    }
+
     const value: AuthContextType = {
         user,
         token,
         login,
         logout,
+        isTokenExpired,
         isAuthenticated: !!token,
     };
 

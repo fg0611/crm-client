@@ -15,7 +15,7 @@ const Button: FC<ButtonProps> = ({ children, onClick, type = 'button', disabled 
       onClick={onClick}
       type={type}
       disabled={disabled}
-      className={`px-4 py-2 rounded-md font-medium text-white transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
+      className={`px-2 py-2 rounded-md font-medium text-white transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
         ${disabled ? 'bg-gray-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'}
         ${className}
       `}

@@ -1,7 +1,7 @@
 // src/context/AuthContext.tsx
 
 import { useState, useEffect, type ReactNode } from 'react';
-import { type IUser } from '../interfaces/IUser';
+import { type IUser } from '../interfaces/commonInterfaces';
 import { AuthContext } from './authContextObject'; // <-- Import the context object
 
 // Define la interfaz para el estado y las funciones del contexto

@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form';
-import { type IUserForm } from '../interfaces/IUser';
+import { type IUserForm } from '../interfaces/commonInterfaces';
 // import { useNavigate } from 'react-router-dom';
 
 // Definimos los props que recibirá el componente

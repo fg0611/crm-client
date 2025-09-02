@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type IUserForm } from '../interfaces/IUser';
+import { type IUserForm } from '../interfaces/commonInterfaces';
 import UserForm from '../components/UserForm';
 import axios from 'axios';
 

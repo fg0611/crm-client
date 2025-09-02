@@ -1,26 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
-import { type ILead } from '../interfaces/IUser';
+import { type ILead, type ILeadUpdate } from '../interfaces/commonInterfaces';
+import { RefreshCcw, Search, XCircle } from 'lucide-react';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import Input from '../components/ui/Input';
+import Select from '../components/ui/Select';
+import Button from '../components/ui/Button';
+import { activeOptions, statusOptions } from '../others/options';
+import type { FilterFormInputs } from '../others/types';
+import { initialFilter } from '../others/filters';
+import { tableColumnNames } from '../others/labels';
+import { Eye, Edit, Copy } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
+import EditLeadModal from '../components/EditLeadModal';
+import { leadCopyContent, formatLeadDataForUI } from '../others/helpers';
 
-const LeadsDashboard = () => {
+
+const DashboardPage = () => {
     const { token } = useAuth();
     const [leads, setLeads] = useState<ILead[]>([]);
     const [totalLeads, setTotalLeads] = useState(0);
     const [page, setPage] = useState(0);
     const [limit] = useState(10);
-    const [filters, setFilters] = useState({
-        id: '',
-        name: '',
-        is_active: '',
-        status: '',
-    });
-    const [appliedFilters, setAppliedFilters] = useState(filters);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
+    const [appliedFilters, setAppliedFilters] = useState<FilterFormInputs>(initialFilter);
+    const [editingLead, setEditingLead] = useState<ILeadUpdate | null>(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
-    const fetchLeads = async () => {
+    const { register, handleSubmit, reset } = useForm<FilterFormInputs>({
+        defaultValues: initialFilter,
+    });
+
+    const fetchLeads = useCallback(async () => {
         if (!token) {
             setError('No estás autenticado.');
             return;
@@ -43,216 +57,305 @@ const LeadsDashboard = () => {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
-                params: params
+                params: params,
             });
-
             setLeads(response.data.leads);
             setTotalLeads(response.data.total);
+
         } catch (err) {
             console.error('Error fetching leads:', err);
-            setError('Error al cargar los leads. Por favor, intente de nuevo más tarde.');
+            setError('Error al cargar leads.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, page, limit, appliedFilters]);
 
     useEffect(() => {
-        fetchLeads();
-    }, [page, limit, appliedFilters, token]);
+        void fetchLeads();
+    }, [fetchLeads]);
 
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFilters({
-            ...filters,
-            [e.target.name]: e.target.value
-        });
+    const handleSearch: SubmitHandler<FilterFormInputs> = (data) => {
+        setPage(0); // Reiniciar a la primera página al aplicar un nuevo filtro
+        setAppliedFilters(data);
     };
 
-    const handleApplyFilters = () => {
-        setAppliedFilters(filters);
+    const handleClear = () => {
+        reset(initialFilter);
         setPage(0);
+        setAppliedFilters(initialFilter);
+    };
+
+    const handleRefresh = () => {
+        setPage(0);
+        void fetchLeads();
     };
 
     const handleNextPage = () => {
-        if ((page + 1) * limit < totalLeads) {
-            setPage(prevPage => prevPage + 1);
-        }
+        setPage(prev => prev + 1);
     };
 
     const handlePrevPage = () => {
-        if (page > 0) {
-            setPage(prevPage => prevPage - 1);
+        setPage(prev => prev - 1);
+    };
+
+    const toggleRowExpansion = (id: string) => {
+        setExpandedRows(prev =>
+            prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+        );
+    };
+
+    const handleEdit = ({ id, name, is_active, status }: ILead) => {
+        setEditingLead({ id, name, is_active, status })
+        setIsModalOpen(!isModalOpen)
+    }
+
+    const handleSave = async ({ name, is_active, status }: ILeadUpdate) => {
+        if (!editingLead) return;
+
+        try {
+            const response = await axios.put(`http://127.0.0.1:8000/leads/${editingLead.id}`, { name, is_active, status }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            // Actualizar el estado de la tabla con el lead actualizado
+            setLeads(leads.map(lead => lead.id === editingLead.id ? response.data : lead));
+            // Cerrar el modal
+            setIsModalOpen(false);
+            setEditingLead(null);
+            console.log('Lead actualizado con éxito:', response.data);
+        } catch (err) {
+            console.error('Error al actualizar el lead:', err);
+            setError('Error al actualizar el lead.');
         }
     };
 
-    const handleEdit = async (leadId: string, updatedData: Partial<ILead>) => {
-        console.log(`Editando lead ${leadId} con datos:`, updatedData);
+    const handleCancel = () => {
+        setIsModalOpen(false);
+        setEditingLead(null);
     };
 
-    const toggleRow = (leadId: string) => {
-        if (expandedRows.includes(leadId)) {
-            setExpandedRows(expandedRows.filter(id => id !== leadId));
-        } else {
-            setExpandedRows([...expandedRows, leadId]);
-        }
-    };
-
-    const copyCollectedData = (data: Record<string, string> | null) => {
-        if (data) {
-            const dataString = Object.entries(data)
-                .map(([key, value]) => `${key}: ${value}`)
-                .join('\n');
-            navigator.clipboard.writeText(dataString);
-        }
-    };
-
-    if (loading) return <div className="text-center" style={{ color: 'var(--color-light-text)' }}>Cargando leads...</div>;
-    if (error) return <div className="text-center" style={{ color: 'var(--color-danger-red)' }}>{error}</div>;
+    if (error) {
+        return <div className="text-center text-red-500 mt-8">Error: {error}</div>;
+    }
 
     return (
-        <div className='p-8 space-y-6' style={{ color: 'var(--color-darker-background)' }}>
-            <h1 className='text-3xl font-bold text-center' style={{ color: 'var(--color-light-text)' }}>Dashboard de Leads</h1>
-            
-            <div className='flex flex-col md:flex-row items-center justify-center gap-4'>
-                <input
-                    type='text'
-                    name='id'
-                    placeholder='Filtrar por ID'
-                    value={filters.id}
-                    onChange={handleFilterChange}
-                    className='px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2'
-                    style={{ backgroundColor: 'var(--color-lighter-background)', color: 'var(--color-light-text)' }}
-                />
-                <input
-                    type='text'
-                    name='name'
-                    placeholder='Filtrar por Nombre'
-                    value={filters.name}
-                    onChange={handleFilterChange}
-                    className='px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2'
-                    style={{ backgroundColor: 'var(--color-lighter-background)', color: 'var(--color-light-text)' }}
-                />
-                <select
-                    name='is_active'
-                    value={filters.is_active}
-                    onChange={handleFilterChange}
-                    className='px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2'
-                    style={{ backgroundColor: 'var(--color-lighter-background)', color: 'var(--color-light-text)' }}
-                >
-                    <option value=''>Activo (Todos)</option>
-                    <option value='true'>Activo</option>
-                    <option value='false'>Inactivo</option>
-                </select>
-                <select
-                    name='status'
-                    value={filters.status}
-                    onChange={handleFilterChange}
-                    className='px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2'
-                    style={{ backgroundColor: 'var(--color-lighter-background)', color: 'var(--color-light-text)' }}
-                >
-                    <option value=''>Estado (Todos)</option>
-                    <option value='pending'>Pendiente</option>
-                    <option value='completed'>Completado</option>
-                    <option value='cancelled'>Cancelado</option>
-                </select>
-                <button
-                    onClick={handleApplyFilters}
-                    className='p-2 rounded-md text-sm font-medium border-1 border-gray-700'
-                    style={{ backgroundColor: 'var(--color-primary-violet)', color: 'var(--color-light-text)' }}
-                >
-                    🔍︎ Buscar
-                </button>
-            </div>
+        <div className='container mx-auto p-4' style={{ color: 'var(--color-light-text)' }}>
+            <h1 className='text-3xl font-bold mb-6 text-center' style={{ color: 'var(--color-light-text)' }}>Dashboard de Leads</h1>
 
-            <div className='overflow-x-auto rounded-lg shadow-lg'>
-                <table className='min-w-full divide-y divide-gray-700' style={{ backgroundColor: 'var(--color-lighter-background)' }}>
-                    <thead style={{ backgroundColor: 'var(--color-darker-background)' }}>
-                        <tr className='place-content-center text-center'>
-                            <th scope='col' className='px-6 py-3 text-xs font-medium uppercase tracking-wider'>contacto 📱</th>
-                            <th scope='col' className='px-6 py-3 text-xs font-medium uppercase tracking-wider'>Nombre 👤</th>
-                            <th scope='col' className='px-6 py-3 text-xs font-medium uppercase tracking-wider'>Bot 🤖</th>
-                            <th scope='col' className='px-6 py-3 text-xs font-medium uppercase tracking-wider'>Estado 📚</th>
-                            <th scope='col' className='px-6 py-3 text-xs font-medium uppercase tracking-wider'>Creación 📅</th>
-                            <th scope='col' className='px-6 py-3 text-xs font-medium uppercase tracking-wider'>Datos 🗂️</th>
-                            <th scope='col' className='px-6 py-3 text-xs font-medium uppercase tracking-wider'>🛠</th>
-                        </tr>
-                    </thead>
-                    <tbody className='divide-y divide-gray-700'>
-                        {leads.length > 0 ? (
-                            leads.map((lead) => (
-                                <>
-                                    <tr key={lead.id} className='text-center'>
-                                        <td className='px-6 py-4 whitespace-nowrap' style={{ color: 'var(--color-text-secondary)' }}>{lead.id}</td>
-                                        <td className='px-6 py-4 whitespace-nowrap' style={{ color: 'var(--color-light-text)' }}>{lead.name}</td>
-                                        <td className='px-6 py-4 whitespace-nowrap' style={{ color: lead.is_active ? 'var(--color-success-green)' : 'var(--color-danger-red)' }}>
-                                            {lead.is_active ? '🟢' : '🔴'}
-                                        </td>
-                                        <td className='px-6 py-4 whitespace-nowrap' style={{ color: 'var(--color-text-secondary)' }}>{lead.status}</td>
-                                        <td className='px-6 py-4 whitespace-nowrap' style={{ color: 'var(--color-text-secondary)' }}>{lead.created_at.split('T')[0]}</td>
-                                        <td className='px-6 py-4 whitespace-nowrap'>
-                                            <button 
-                                                onClick={() => lead.collected_data && toggleRow(lead.id)}
-                                                disabled={!lead.collected_data || JSON.stringify(lead.collected_data).length < 5}
-                                                className={`text-sm font-medium focus:outline-none ${JSON.stringify(lead?.collected_data).length > 4 ? 'text-green-200 hover:underline' : 'text-gray-500 cursor-not-allowed'}`}
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className={`w-5 h-5 inline-block transform transition-transform ${expandedRows.includes(lead.id) ? 'rotate-90' : 'rotate-0'}`}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                                                </svg>
-                                                Ver Datos
-                                            </button>
-                                        </td>
-                                        <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
-                                            <button onClick={() => handleEdit(lead.id, lead)} className='text-blue-400 hover:text-blue-500'>Editar</button>
-                                        </td>
-                                    </tr>
-                                    {expandedRows.includes(lead.id) && lead.collected_data && (
-                                        <tr className='bg-gray-800/50'>
-                                            <td colSpan={7} className='p-4'>
-                                                <div className='flex items-center justify-between'>
-                                                    <h4 className='text-sm font-semibold'>Datos Recopilados:</h4>
-                                                    <button onClick={() => copyCollectedData(lead.collected_data)} className='text-xs text-blue-400 hover:underline'>Copiar Datos</button>
-                                                </div>
-                                                <ul className='mt-2 text-xs space-y-1'>
-                                                    {Object.entries(lead.collected_data).map(([key, value]) => (
-                                                        <li key={key}>
-                                                            <span className='font-medium'>{key}:</span> {value}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={7} className='px-6 py-4 text-center' style={{ color: 'var(--color-text-secondary)' }}>No se encontraron leads.</td>
+            {/* Formulario de filtrado */}
+            <form onSubmit={handleSubmit(handleSearch)} className='mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+                <Input
+                    hasLabel={false}
+                    label="ID del Lead"
+                    id="id"
+                    type="text"
+                    placeholder="Buscar por Tlf"
+                    register={register}
+                    errors={null}
+                    stateKey="id"
+                />
+                <Input
+                    hasLabel={false}
+                    label="Nombre"
+                    id="name"
+                    type="text"
+                    placeholder="Buscar por nombre"
+                    register={register}
+                    errors={null}
+                    stateKey="name"
+                />
+                <Select
+                    hasLabel={false}
+                    label="Estado Activo"
+                    id="is_active"
+                    options={activeOptions}
+                    register={register}
+                    stateKey="is_active"
+                />
+                <Select
+                    hasLabel={false}
+                    label="Estado del Lead"
+                    id="status"
+                    options={statusOptions}
+                    register={register}
+                    stateKey="status"
+                />
+                <div className='flex gap-2 lg:col-span-4 justify-end'>
+                    <Button type='submit' className="flex items-center gap-2">
+                        <Search size={18} /> Buscar
+                    </Button>
+                    <Button type='button' onClick={handleClear} className="flex items-center gap-2">
+                        <XCircle size={18} /> Limpiar
+                    </Button>
+                    <Button type='button' onClick={handleRefresh} className="flex items-center gap-2">
+                        <RefreshCcw size={18} /> Actualizar
+                    </Button>
+                </div>
+            </form>
+
+            {/* Tabla de Leads */}
+            <div className='overflow-x-auto rounded-lg shadow-lg' style={{ backgroundColor: 'var(--color-lighter-background)' }}>
+                <TooltipProvider>
+                    <table className='min-w-full divide-y' style={{ borderColor: 'var(--color-text-secondary)' }}>
+                        <thead className='bg-gray-700'>
+                            <tr className='text-center'>
+                                {Object.keys(tableColumnNames).map((k: string) => <th key={`tcol-${k}`} scope='col' className='px-2 py-2 text-xs font-medium uppercase tracking-wider' style={{ color: 'var(--color-text-secondary)' }}>
+                                    {tableColumnNames[k]}
+                                </th>)}
                             </tr>
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody style={{ backgroundColor: 'var(--color-dark-background)' }}>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={7} className='px-6 py-4 text-center' style={{ color: 'var(--color-text-secondary)' }}>Cargando leads...</td>
+                                </tr>
+                            ) : leads?.length > 0 ? (
+                                leads.map((lead) => (
+                                    <>
+                                        <tr
+                                            key={lead.id}
+                                            className='text-center border-b transition-colors duration-200'
+                                            style={{ borderColor: 'var(--color-lighter-background)' }}
+                                        >
+                                            <td className='px-2 py-2 whitespace-nowrap text-sm font-medium'>
+                                                <div className='flex items-center gap-2'>
+                                                    {/* Ver Datos */}
+                                                    <p>{lead.id}</p>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); toggleRowExpansion(lead.id); }}
+                                                                className='text-white transition-colors cursor-pointer'
+                                                            >
+                                                                <Eye size={20} />
+                                                            </button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Ver datos</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+
+                                                    {/* Editar Lead */}
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <button
+                                                                onClick={() => { handleEdit(lead) }}
+                                                                className='text-yellow-200 transition-colors cursor-pointer'
+                                                            >
+                                                                <Edit size={20} />
+                                                            </button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Editar lead</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+
+                                                    {/* Copiar Data */}
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <button
+                                                                disabled={!lead.collected_data || JSON.stringify(lead.collected_data).length < 5}
+                                                                onClick={() => navigator.clipboard.writeText(leadCopyContent(lead))}
+                                                                className={`${(!lead.collected_data || JSON.stringify(lead.collected_data).length < 5) ? 'text-grey-400' : 'text-green-500 cursor-pointer'} transition-colors`}
+                                                            >
+                                                                <Copy size={20} />
+                                                            </button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Copiar data</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </div>
+                                            </td>
+                                            <td className='px-6 py-4 text-sm max-w-xs overflow-hidden text-ellipsis' style={{ color: 'var(--color-light-text)' }}>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className='whitespace-nowrap cursor-pointer'>
+                                                            {lead.name
+                                                                ? (lead.name.split(' ').length > 6
+                                                                    ? lead.name.split(' ').slice(0, 6).join(' ') + '...'
+                                                                    : lead.name)
+                                                                : '-'}
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        {/* El tooltip siempre muestra el nombre completo o 'N/A' */}
+                                                        <p className='max-w-xs break-words'>{lead.name || 'N/A'}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </td>
+                                            <td className='px-2 py-2 whitespace-nowrap text-sm'>{lead.is_active ? '🟢' : '🔴'}</td>
+                                            <td className='px-2 py-2 whitespace-nowrap text-sm'>
+                                                <span
+                                                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                        ${statusOptions.find(s => s.value === lead.status)?.style || 'bg-gray-100 text-gray-800'
+                                                        }`}
+                                                >
+                                                    {statusOptions.find(s => s.value === lead.status)?.label}
+                                                </span>
+                                            </td>
+                                            <td className='px-2 py-2 whitespace-nowrap text-sm'>{new Date(lead.created_at).toLocaleDateString()}</td>
+                                        </tr>
+                                        {expandedRows.includes(lead.id) && (
+                                            <tr>
+                                                <td colSpan={7} className='p-1 bg-gray-700'>
+                                                    <div className='bg-gray-800 p-2'>
+                                                        <div className='mt-1 grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                                            <div>
+                                                                <h5 className='font-bold' style={{ color: 'var(--color-light-text)' }}>📑 Contacto</h5>
+                                                                <ul className='space-y-2 text-sm' style={{ color: 'var(--color-text-secondary)' }}>
+                                                                    {formatLeadDataForUI(lead).general}
+                                                                </ul>
+                                                            </div>
+                                                            <div>
+                                                                <h5 className='font-bold' style={{ color: 'var(--color-light-text)' }}>📑 Recolectado</h5>
+                                                                {formatLeadDataForUI(lead).collected.length > 0 ? (
+                                                                    <ul className='space-y-2 mt-2' style={{ color: 'var(--color-text-secondary)' }}>
+                                                                        {formatLeadDataForUI(lead).collected}
+                                                                    </ul>
+                                                                ) : (
+                                                                    <p className='text-sm mt-2' style={{ color: 'var(--color-text-secondary)' }}>No hay datos recopilados. 😕</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} className='px-6 py-4 text-center' style={{ color: 'var(--color-text-secondary)' }}>No se encontraron leads. 🕵️‍♂️</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </TooltipProvider>
             </div>
 
+            {/* Modal de edición */}
+            {isModalOpen && (
+                <EditLeadModal
+                    lead={editingLead}
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                />
+            )}
+
+            {/* Paginación */}
             <div className='flex justify-between items-center mt-4'>
-                <button
-                    onClick={handlePrevPage}
-                    disabled={page === 0}
-                    className='px-4 py-2 rounded-md text-sm font-medium'
-                    style={{ backgroundColor: 'var(--color-primary-violet)', color: 'white' }}
-                >
+                <Button type='button' onClick={handlePrevPage} disabled={page === 0}>
                     Anterior
-                </button>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Página {page + 1} de {Math.ceil(totalLeads / limit)}</span>
-                <button
-                    onClick={handleNextPage}
-                    disabled={(page + 1) * limit >= totalLeads}
-                    className='px-4 py-2 rounded-md text-sm font-medium'
-                    style={{ backgroundColor: 'var(--color-primary-violet)', color: 'white' }}
-                >
+                </Button>
+                <span className='text-sm' style={{ color: 'var(--color-text-secondary)' }}>Página {page + 1} de {Math.ceil(totalLeads / limit)}</span>
+                <Button type='button' onClick={handleNextPage} disabled={(page + 1) * limit >= totalLeads}>
                     Siguiente
-                </button>
+                </Button>
             </div>
         </div>
     );
 };
 
-export default LeadsDashboard;
+export default DashboardPage;

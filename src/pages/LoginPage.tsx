@@ -1,6 +1,6 @@
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { type IUserForm } from '../interfaces/IUser'; // Importa la nueva interfaz IUserForm
+import { type IUserForm } from '../interfaces/commonInterfaces'; // Importa la nueva interfaz IUserForm
 import UserForm from '../components/UserForm';
 import axios from 'axios';
 

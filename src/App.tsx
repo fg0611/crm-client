@@ -11,8 +11,9 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated } = useAuth();
-  if (!isAuthenticated) {
+  const { isAuthenticated, isTokenExpired } = useAuth();
+  // console.log(isTokenExpired())
+  if (!isAuthenticated || isTokenExpired()) {
     return <Navigate to="/login" replace />;
   }
   return children;

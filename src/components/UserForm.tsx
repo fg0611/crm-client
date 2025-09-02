@@ -1,29 +1,28 @@
 import { useForm } from 'react-hook-form';
-import { type IUserForm } from '../interfaces/IUser';
-// import { useNavigate } from 'react-router-dom';
+import { type IUserForm } from '../interfaces/commonInterfaces';
 
-// Definimos los props que recibirá el componente
+// ... (interface definitions are fine)
 interface UserFormProps {
     formTitle: string;
     buttonText: string;
-    onSubmit: (data: IUserForm | IUserForm) => void;
+    onSubmit: (data: IUserForm) => void;
 }
 
 const UserForm = ({ formTitle, buttonText, onSubmit }: UserFormProps) => {
-    // El hook useForm es responsable de gestionar el estado del formulario y la validación
-    const { register, handleSubmit, formState: { errors } } = useForm<IUserForm | IUserForm>();
-    // const navigate = useNavigate();
+    const { register, handleSubmit, formState: { errors } } = useForm<IUserForm>();
 
     return (
         <div className='w-full max-w-md p-8 space-y-8 rounded-lg shadow-lg' style={{ backgroundColor: 'var(--color-lighter-background)' }}>
             <h2 className='text-center text-3xl font-bold' style={{ color: 'var(--color-light-text)' }}>{formTitle}</h2>
             <form className='mt-8 space-y-6' onSubmit={handleSubmit(onSubmit)}>
                 <div className='rounded-md shadow-sm -space-y-px'>
+                    {/* Usuario/Username Input */}
                     <div>
                         <input
-                            id='name'
-                            type='name'
-                            autoComplete='email'
+                            id='username'
+                            name='username' // Recommended for better HTML semantics
+                            type='text' // Use 'text' for username field
+                            autoComplete='username' // Use 'username' for username autofill
                             required
                             className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-600 focus:outline-none focus:ring-2 focus:z-10 sm:text-sm rounded-t-md'
                             style={{
@@ -35,9 +34,11 @@ const UserForm = ({ formTitle, buttonText, onSubmit }: UserFormProps) => {
                         />
                         {errors.username && <p className='mt-2 text-sm' style={{ color: 'var(--color-danger-red)' }}>{errors.username.message}</p>}
                     </div>
+                    {/* Contraseña/Password Input */}
                     <div>
                         <input
                             id='password'
+                            name='password' // Recommended for better HTML semantics
                             type='password'
                             autoComplete='current-password'
                             required

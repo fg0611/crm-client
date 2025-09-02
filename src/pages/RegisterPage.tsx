@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type IUserForm } from '../interfaces/IUser';
+import { type IUserForm } from '../interfaces/commonInterfaces';
 import UserForm from '../components/UserForm';
 import axios from 'axios';
+import { envVars } from '../others/helpers';
 
 const RegisterPage = () => {
   const [isRegistered, setIsRegistered] = useState(false);
@@ -10,7 +11,7 @@ const RegisterPage = () => {
 
   const handleRegister = async (data: IUserForm) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/register', {
+      const response = await axios.post(envVars.apiUrl + '/register', {
         username: data.username,
         password: data.password,
       });

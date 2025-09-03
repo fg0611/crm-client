@@ -1,15 +1,18 @@
 import { useForm } from 'react-hook-form';
 import { type IUserForm } from '../interfaces/commonInterfaces';
+import { useNavigate } from 'react-router-dom';
 
 // ... (interface definitions are fine)
 interface UserFormProps {
     formTitle: string;
     buttonText: string;
     onSubmit: (data: IUserForm) => void;
+    path?: string
 }
 
-const UserForm = ({ formTitle, buttonText, onSubmit }: UserFormProps) => {
+const UserForm = ({ formTitle, buttonText, onSubmit, path }: UserFormProps) => {
     const { register, handleSubmit, formState: { errors } } = useForm<IUserForm>();
+    const navigate = useNavigate()
 
     return (
         <div className='w-full max-w-md p-8 space-y-8 rounded-lg shadow-lg' style={{ backgroundColor: 'var(--color-lighter-background)' }}>
@@ -61,6 +64,9 @@ const UserForm = ({ formTitle, buttonText, onSubmit }: UserFormProps) => {
                     </button>
                 </div>
             </form>
+            {path && <button onClick={() => navigate(path)} className='text-blue-300 underline'>
+                {path === '/register' ? 'Crear cuenta' : 'Ya tengo una cuenta'}
+            </button>}
         </div>
     );
 };

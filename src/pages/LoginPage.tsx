@@ -37,6 +37,7 @@ const handleLogin = async (data: IUserForm) => {
         formTitle='Iniciar Sesión'
         buttonText='Iniciar sesión'
         onSubmit={handleLogin} // Pasamos la función actualizada al componente
+        path={'/register'}
       />
     </div>
   );

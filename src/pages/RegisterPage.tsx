@@ -8,7 +8,7 @@ import { envVars } from '../others/helpers';
 const RegisterPage = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const navigate = useNavigate();
-
+  
   const handleRegister = async (data: IUserForm) => {
     try {
       const response = await axios.post(envVars.apiUrl + '/register', {
@@ -48,6 +48,7 @@ const RegisterPage = () => {
           formTitle='Registrarme'
           buttonText='Registrarme'
           onSubmit={handleRegister}
+          path={'/login'}
         />
       )}
     </div>

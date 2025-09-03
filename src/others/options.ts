@@ -9,4 +9,5 @@ export const statusOptions = [
     { value: 'responded', label: 'Respondió' , style: 'bg-blue-100 text-blue-800'},
     { value: 'completed', label: 'Completado', style: 'bg-green-100 text-green-800' },
     { value: 'quoted', label: 'Cotizado', style: 'bg-gray-100 text-gray-800' },
+    { value: 'signed', label: 'Afiliado', style: 'bg-cyan-100 text-cyan-800' },
 ];

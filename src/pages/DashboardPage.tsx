@@ -112,7 +112,9 @@ const DashboardPage = () => {
         if (!editingLead) return;
 
         try {
-            const response = await axios.put(`${envVars.apiUrl}/leads/${editingLead.id}`, { name, is_active, status }, {
+            const modLeadData =  { name, is_active, status }
+            console.log(modLeadData)
+            const response = await axios.put(`${envVars.apiUrl}/leads/${editingLead.id}`, modLeadData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

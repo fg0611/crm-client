@@ -50,6 +50,7 @@ const DashboardPage = () => {
                 name: appliedFilters.name || undefined,
                 is_active: appliedFilters.is_active === 'true' ? true : appliedFilters.is_active === 'false' ? false : undefined,
                 status: appliedFilters.status || undefined,
+                order_by_created_at: appliedFilters.isOldestFirst ? 'asc' : 'desc'
             };
 
             const response = await axios.get(envVars.apiUrl + '/leads', {
@@ -112,7 +113,7 @@ const DashboardPage = () => {
         if (!editingLead) return;
 
         try {
-            const modLeadData =  { name, is_active, status }
+            const modLeadData = { name, is_active, status }
             console.log(modLeadData)
             const response = await axios.put(`${envVars.apiUrl}/leads/${editingLead.id}`, modLeadData, {
                 headers: {
@@ -171,6 +172,16 @@ const DashboardPage = () => {
                             errors={null}
                             stateKey="name"
                         />
+                        <Input
+                            hasLabel={true}
+                            label="Menos recientes"
+                            id="isOldestFirst"
+                            type="checkbox"
+                            placeholder="Buscar por menos recientes"
+                            register={register}
+                            errors={null}
+                            stateKey="isOldestFirst"
+                            />
 
                     </div>
                     <div className="flex flex-col gap-2 place-content-center">

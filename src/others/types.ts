@@ -4,4 +4,5 @@ export type FilterFormInputs = {
     name: string;
     is_active: string;
     status: string;
+    isOldestFirst: boolean
 };
